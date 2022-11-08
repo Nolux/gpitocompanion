@@ -6,8 +6,8 @@
     "page": "10"
   },
   "gpiPorts": [
-    { "tally": 1, "rpiPin": 4, "page": "10", "button": "1" },
-    { "tally": 2, "rpiPin": 17, "page": "10", "button": "2" },
+    { "tally": 1, "rpiPin": 17, "page": "10", "button": "1" },
+    { "tally": 2, "rpiPin": 18, "page": "10", "button": "2" },
     { "tally": 3, "rpiPin": 27, "page": "10", "button": "3" },
     { "tally": 4, "rpiPin": 22, "page": "10", "button": "4" },
     { "tally": 5, "rpiPin": 23, "page": "10", "button": "5" },
