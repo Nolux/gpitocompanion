@@ -1,9 +1,90 @@
-var osc = require("osc"),
-  http = require("http"),
-  WebSocket = require("ws");
-var Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
-var gpi0 = new Gpio(4, "in", "rising");
-var gpi1 = new Gpio(17, "in", "rising");
+const osc = require("osc");
+const http = require("http");
+const WebSocket = require("ws");
+const Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
+
+// Load local settings
+const { settings, gpiPorts, gpoPorts } = require("./settings.json");
+
+console.log(settings, gpiPorts, gpoPorts);
+
+const udpPort = new osc.UDPPort({
+  localAddress: settings.udpIp,
+  localPort: settings.localUdpPort,
+  metadata: true,
+});
+udpPort.open();
+udpPort.on("ready", function () {
+  console.log("OSC ready");
+});
+
+let ports = [];
+
+// Functions
+
+const sendTally = (tallyNumber, on) => {
+  if (!udpPort) {
+    return;
+  }
+  udpPort.send(
+    {
+      address: "/press/bank/10/" + tallyNumber,
+      args: [
+        {
+          type: "i",
+          value: on ? 1 : 0,
+        },
+      ],
+    },
+    settings.udpIp,
+    settings.udpPort
+  );
+  console.log(`Tally: ${tally} ${on ? "ON" : "OFF"}`);
+};
+
+// Setup GPI
+
+gpiPorts.map(({ tally, rpiPin, page, button }) => {
+  // enable pin
+  ports[rpiPin].gpi = new Gpio(rpiPin, "in", "both");
+
+  // set watch pin function
+  ports[rpiPin].gpi.watch(function (err, value) {
+    if (err) {
+      //if an error
+      console.error("There was an error GPI0", err); //output error message to console
+      return;
+    }
+    sendTally(tally, value);
+  });
+
+  ports[rpiPin] = { tally };
+  ports[rpiPin].status = false;
+});
+
+// Setup GPO
+
+gpoPorts.map(({ tally, rpiPin }) => {
+  ports[rpiPin] = { tally };
+  ports[rpiPin].status = false;
+});
+
+console.log("Running GPItoOSC");
+
+let unexportOnClose = () => {
+  gpiPorts.map(({ rpiPin, tally }) => {
+    ports[rpiPin].gpi.unexport(); // Unexport GPI0 to free resources
+    sendTally(tally, 0);
+  });
+  console.log("GPIO cleaned up and OSC-states set off");
+  process.exit();
+};
+
+process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
+
+/* 
+var gpi0 = new Gpio(4, "in", "both");
+var gpi1 = new Gpio(17, "in", "both");
 var gpi2 = new Gpio(27, "in", "both");
 var gpi3 = new Gpio(22, "in", "both");
 var gpi4 = new Gpio(23, "in", "both");
@@ -20,17 +101,7 @@ var GPIO5 = "gpi5";
 var GPIO6 = "gpi6";
 var GPIO7 = "gpi7";
 
-var udpPort = new osc.UDPPort({
-  localAddress: "127.0.0.1",
-  localPort: 8010,
-  metadata: true,
-});
-udpPort.open();
-udpPort.on("ready", function () {
-  console.log("OSC ready");
-});
 
-console.log("hello");
 
 function tallyON(tally) {
   udpPort.send(
@@ -186,28 +257,5 @@ gpi7.watch(function (err, value) {
   }
 });
 
-console.log("Running GPItoOSC");
 
-function unexportOnClose() {
-  //function to run when exiting program
-  gpi0.unexport(); // Unexport GPI0 to free resources
-  gpi1.unexport(); // Unexport GPI0 to free resources
-  gpi2.unexport(); // Unexport GPI0 to free resources
-  gpi3.unexport(); // Unexport GPI0 to free resources
-  gpi4.unexport(); // Unexport GPI0 to free resources
-  gpi5.unexport(); // Unexport GPI0 to free resources
-  gpi6.unexport(); // Unexport GPI0 to free resources
-  gpi7.unexport(); // Unexport GPI0 to free resources
-  tallyOFF(0);
-  tallyOFF(1);
-  tallyOFF(2);
-  tallyOFF(3);
-  tallyOFF(4);
-  tallyOFF(5);
-  tallyOFF(6);
-  tallyOFF(7);
-  console.log("GPIO cleaned up and OSC-states set off");
-  process.exit();
-}
-
-process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
+ */
