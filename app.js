@@ -22,7 +22,13 @@ let gpo = [];
 // Functions
 //
 
-const sendTally = (tallyNumber, on) => {
+const sendTally = (
+  tallyNumber,
+  on,
+  page = settings.page,
+  button = tallyNumber
+) => {
+  console.log(button, tallyNumber);
   // If UDP port not ready do not send tally
   if (!client) {
     return;
@@ -30,7 +36,7 @@ const sendTally = (tallyNumber, on) => {
 
   // Send UDP message to companion
   client.send(
-    `BANK-${on ? "DOWN" : "UP"} ${settings.page} ${tallyNumber}`,
+    `BANK-${on ? "DOWN" : "UP"} ${page} ${button}`,
     settings.remoteUdpPort,
     settings.remoteUdpIp
   );
@@ -77,7 +83,7 @@ gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
       console.error(`There was an error GPI${rpiPin} ${err}`); //output error message to console
       return;
     }
-    sendTally(tallyNumber, value);
+    sendTally(tallyNumber, value, page, button);
   });
 });
 
