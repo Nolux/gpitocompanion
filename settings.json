@@ -5,7 +5,8 @@
     "page": "10",
     "tslServerPort": 5555,
     "tslUDP": true,
-    "tslTCP": true
+    "tslTCP": true,
+    "debug": true
   },
   "gpiPorts": [
     { "tallyNumber": 1, "rpiPin": 17, "page": "10", "button": "1" },

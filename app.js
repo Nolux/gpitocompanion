@@ -28,7 +28,6 @@ const sendTally = (
   page = settings.page,
   button = tallyNumber
 ) => {
-  console.log(button, tallyNumber);
   // If UDP port not ready do not send tally
   if (!client) {
     return;
@@ -42,8 +41,9 @@ const sendTally = (
   );
 
   gpi[tallyNumber].status = on; // For future use
-
-  console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
+  if (settings.debug) {
+    console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
+  }
 };
 
 const unexportOnClose = () => {
@@ -106,6 +106,9 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
   // Trigger output matching address
   if (gpo[address]) {
     gpo[address].gpo.writeSync(tally2);
+  }
+  if (settings.debug && tally2) {
+    console.log(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
   }
 });
 
