@@ -1,6 +1,3 @@
-const osc = require("osc");
-const http = require("http");
-const WebSocket = require("ws");
 const dgram = require("dgram");
 const TSLServer = require("tslserver");
 const Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
@@ -8,61 +5,54 @@ const Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
 // Load local settings
 const { settings, gpiPorts, gpoPorts } = require("./settings.json");
 
+// Load TSL Server
 let tslServer = new TSLServer(settings.tslServerPort, {
   udp: settings.tslUDP,
   tcp: settings.tslTCP,
 });
 
-var client = dgram.createSocket("udp4");
+// Setup UDP client for companion
+const client = dgram.createSocket("udp4");
 
-/*
-const udpPort = new osc.UDPPort({
-  localAddress: settings.udpIp,
-  localPort: settings.localUdpPort,
-  metadata: true,
-});
-udpPort.open();
-udpPort.on("ready", function () {
-  console.log("OSC ready");
-});
-*/
-
-client.send("BANK-PRESS 10 1", "8009", "10.0.10.15");
-
+// Prep local state
 let gpi = [];
 let gpo = [];
 
+//
 // Functions
+//
 
 const sendTally = (tallyNumber, on) => {
   // If UDP port not ready do not send tally
   if (!client) {
     return;
   }
-  console.log(`BANK-${on ? "DOWN" : "UP"} ${settings.page} ${tallyNumber}`);
+
+  // Send UDP message to companion
   client.send(
     `BANK-${on ? "DOWN" : "UP"} ${settings.page} ${tallyNumber}`,
     settings.remoteUdpPort,
     settings.remoteUdpIp
   );
-  /*
-  udpPort.send(
-    {
-      address: `/press/bank/${settings.page}/${tallyNumber}`,
-      args: [
-        {
-          type: "i",
-          value: on ? 1 : 0,
-        },
-      ],
-    },
-    settings.udpIp,
-    settings.udpPort
-  );*/
+
   console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
 };
 
+const unexportOnClose = () => {
+  gpiPorts.map(({ rpiPin, tally }) => {
+    if (!tally) {
+      return;
+    }
+    gpi[tally].gpi.unexport(); // Unexport GPI0 to free resources
+    sendTally(tally, 0);
+  });
+  console.log("GPIO cleaned up and OSC-states set off");
+  process.exit();
+};
+
+//
 // Setup GPI
+//
 
 gpiPorts.map(({ tally, rpiPin, page, button }) => {
   if (!tally) {
@@ -86,7 +76,9 @@ gpiPorts.map(({ tally, rpiPin, page, button }) => {
   });
 });
 
+//
 // Setup GPO
+//
 
 gpoPorts.map(({ tally, rpiPin }) => {
   if (!tally) {
@@ -108,16 +100,5 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
 
 console.log("Running GPItoOSC");
 
-let unexportOnClose = () => {
-  gpiPorts.map(({ rpiPin, tally }) => {
-    if (!tally) {
-      return;
-    }
-    gpi[tally].gpi.unexport(); // Unexport GPI0 to free resources
-    sendTally(tally, 0);
-  });
-  console.log("GPIO cleaned up and OSC-states set off");
-  process.exit();
-};
-
+// On termination close all ports/cleanup
 process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
