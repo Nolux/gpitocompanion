@@ -1,9 +1,11 @@
 {
   "settings": {
-    "localUdpPort": 8010,
-    "udpPort": 8001,
-    "udpIp": "127.0.0.1",
-    "page": "10"
+    "remoteUdpPort": 8009,
+    "remoteUdpIp": "10.0.10.15",
+    "page": "10",
+    "tslServerPort": 5555,
+    "tslUDP": true,
+    "tslTCP": true
   },
   "gpiPorts": [
     { "tally": 1, "rpiPin": 17, "page": "10", "button": "1" },
