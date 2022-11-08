@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "localUdpPort": 8010,
+    "udpPort": 8001,
+    "udpIp": "127.0.0.1",
+    "page": "10"
+  },
+  "gpiPorts": [
+    { "tally": 1, "rpiPin": 4, "page": "10", "button": "1" },
+    { "tally": 2, "rpiPin": 17, "page": "10", "button": "2" },
+    { "tally": 3, "rpiPin": 27, "page": "10", "button": "3" },
+    { "tally": 4, "rpiPin": 22, "page": "10", "button": "4" },
+    { "tally": 5, "rpiPin": 23, "page": "10", "button": "5" },
+    { "tally": 6, "rpiPin": 24, "page": "10", "button": "6" },
+    { "tally": 7, "rpiPin": 9, "page": "10", "button": "7" },
+    { "tally": 8, "rpiPin": 25, "page": "10", "button": "8" }
+  ],
+  "gpoPorts": [
+    { "tally": 1, "rpiPin": 29 },
+    { "tally": 2, "rpiPin": 31 },
+    { "tally": 3, "rpiPin": 32 },
+    { "tally": 4, "rpiPin": 33 },
+    { "tally": 5, "rpiPin": 35 },
+    { "tally": 6, "rpiPin": 36 },
+    { "tally": 7, "rpiPin": 37 },
+    { "tally": 8, "rpiPin": 38 }
+  ]
+}
