@@ -50,14 +50,14 @@ gpiPorts.map(({ tally, rpiPin, page, button }) => {
     return;
   }
 
-  ports[rpiPin] = { tally };
-  ports[rpiPin].status = false;
+  ports[tally] = { tally };
+  ports[tally].status = false;
 
   // enable pin
-  ports[rpiPin].gpi = new Gpio(rpiPin, "in", "both");
+  ports[tally].gpi = new Gpio(rpiPin, "in", "both");
 
   // set watch pin function
-  ports[rpiPin].gpi.watch(function (err, value) {
+  ports[tally].gpi.watch(function (err, value) {
     if (err) {
       //if an error
       console.error("There was an error GPI0", err); //output error message to console

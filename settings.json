@@ -16,13 +16,13 @@
     { "tally": 8, "rpiPin": 25, "page": "10", "button": "8" }
   ],
   "gpoPorts": [
-    { "tally": 1, "rpiPin": 29 },
-    { "tally": 2, "rpiPin": 31 },
-    { "tally": 3, "rpiPin": 32 },
-    { "tally": 4, "rpiPin": 33 },
-    { "tally": 5, "rpiPin": 35 },
-    { "tally": 6, "rpiPin": 36 },
-    { "tally": 7, "rpiPin": 37 },
-    { "tally": 8, "rpiPin": 38 }
+    { "tally": 1, "rpiPin": 5 },
+    { "tally": 2, "rpiPin": 6 },
+    { "tally": 3, "rpiPin": 12 },
+    { "tally": 4, "rpiPin": 13 },
+    { "tally": 5, "rpiPin": 19 },
+    { "tally": 6, "rpiPin": 16 },
+    { "tally": 7, "rpiPin": 20 },
+    { "tally": 8, "rpiPin": 21 }
   ]
 }
