@@ -35,16 +35,19 @@ const sendTally = (tallyNumber, on) => {
     settings.remoteUdpIp
   );
 
+  gpi[tallyNumber].status = on; // For future use
+
   console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
 };
 
 const unexportOnClose = () => {
-  gpiPorts.map(({ rpiPin, tally }) => {
-    if (!tally) {
+  // Close all incoming ports/send blank tally to all numbers
+  gpiPorts.map(({ rpiPin, tallyNumber }) => {
+    if (!tallyNumber) {
       return;
     }
-    gpi[tally].gpi.unexport(); // Unexport GPI0 to free resources
-    sendTally(tally, 0);
+    gpi[tallyNumber].gpi.unexport(); // Unexport GPI0 to free resources
+    sendTally(tallyNumber, 0);
   });
   console.log("GPIO cleaned up and OSC-states set off");
   process.exit();
@@ -54,25 +57,27 @@ const unexportOnClose = () => {
 // Setup GPI
 //
 
-gpiPorts.map(({ tally, rpiPin, page, button }) => {
-  if (!tally) {
+gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
+  // Check if tallyNumber exists, bug caused by index
+  if (!tallyNumber) {
     return;
   }
 
-  gpi[tally] = { tally };
-  gpi[tally].status = false;
+  // Update local state
+  gpi[tallyNumber] = { tallyNumber };
+  gpi[tallyNumber].status = false;
 
-  // enable pin
-  gpi[tally].gpi = new Gpio(rpiPin, "in", "both");
+  // Enable pin
+  gpi[tallyNumber].gpi = new Gpio(rpiPin, "in", "both");
 
-  // set watch pin function
-  gpi[tally].gpi.watch(function (err, value) {
+  // Setup watch pin function
+  gpi[tallyNumber].gpi.watch(function (err, value) {
     if (err) {
       //if an error
       console.error(`There was an error GPI${rpiPin} ${err}`); //output error message to console
       return;
     }
-    sendTally(tally, value);
+    sendTally(tallyNumber, value);
   });
 });
 
@@ -80,14 +85,14 @@ gpiPorts.map(({ tally, rpiPin, page, button }) => {
 // Setup GPO
 //
 
-gpoPorts.map(({ tally, rpiPin }) => {
-  if (!tally) {
+gpoPorts.map(({ tallyNumber, rpiPin }) => {
+  if (!tallyNumber) {
     return;
   }
-  gpo[tally] = { tally };
-  gpo[tally].status = false;
+  gpo[tallyNumber] = { tallyNumber };
+  gpo[tallyNumber].status = false;
 
-  gpo[tally].gpo = new Gpio(rpiPin, "out"); //enable when needed
+  gpo[tallyNumber].gpo = new Gpio(rpiPin, "out"); //enable when needed
 });
 
 // TSL server actions

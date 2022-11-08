@@ -1,30 +1,30 @@
 {
   "settings": {
-    "remoteUdpPort": 8009,
-    "remoteUdpIp": "10.0.10.15",
+    "remoteUdpPort": 8001,
+    "remoteUdpIp": "127.0.0.1",
     "page": "10",
     "tslServerPort": 5555,
     "tslUDP": true,
     "tslTCP": true
   },
   "gpiPorts": [
-    { "tally": 1, "rpiPin": 17, "page": "10", "button": "1" },
-    { "tally": 2, "rpiPin": 18, "page": "10", "button": "2" },
-    { "tally": 3, "rpiPin": 27, "page": "10", "button": "3" },
-    { "tally": 4, "rpiPin": 22, "page": "10", "button": "4" },
-    { "tally": 5, "rpiPin": 23, "page": "10", "button": "5" },
-    { "tally": 6, "rpiPin": 24, "page": "10", "button": "6" },
-    { "tally": 7, "rpiPin": 9, "page": "10", "button": "7" },
-    { "tally": 8, "rpiPin": 25, "page": "10", "button": "8" }
+    { "tallyNumber": 1, "rpiPin": 17, "page": "10", "button": "1" },
+    { "tallyNumber": 2, "rpiPin": 18, "page": "10", "button": "2" },
+    { "tallyNumber": 3, "rpiPin": 27, "page": "10", "button": "3" },
+    { "tallyNumber": 4, "rpiPin": 22, "page": "10", "button": "4" },
+    { "tallyNumber": 5, "rpiPin": 23, "page": "10", "button": "5" },
+    { "tallyNumber": 6, "rpiPin": 24, "page": "10", "button": "6" },
+    { "tallyNumber": 7, "rpiPin": 9, "page": "10", "button": "7" },
+    { "tallyNumber": 8, "rpiPin": 25, "page": "10", "button": "8" }
   ],
   "gpoPorts": [
-    { "tally": 1, "rpiPin": 5 },
-    { "tally": 2, "rpiPin": 6 },
-    { "tally": 3, "rpiPin": 12 },
-    { "tally": 4, "rpiPin": 13 },
-    { "tally": 5, "rpiPin": 19 },
-    { "tally": 6, "rpiPin": 16 },
-    { "tally": 7, "rpiPin": 20 },
-    { "tally": 8, "rpiPin": 21 }
+    { "tallyNumber": 1, "rpiPin": 5 },
+    { "tallyNumber": 2, "rpiPin": 6 },
+    { "tallyNumber": 3, "rpiPin": 12 },
+    { "tallyNumber": 4, "rpiPin": 13 },
+    { "tallyNumber": 5, "rpiPin": 19 },
+    { "tallyNumber": 6, "rpiPin": 16 },
+    { "tallyNumber": 7, "rpiPin": 20 },
+    { "tallyNumber": 8, "rpiPin": 21 }
   ]
 }
