@@ -52,7 +52,7 @@ const sendTally = (
 
   gpi[tallyNumber].status = on; // For future use
   if (settings.debug) {
-    console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
+    consoleLog(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
   }
   updateState()
 };
@@ -119,8 +119,8 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
   if (gpo[address]) {
     gpo[address].gpo.writeSync(tally2);
   }
-  if (settings.debug && tally2) {
-    console.log(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
+  if (settings.debug) {
+    consoleLog(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
   }
   updateState()
 });
@@ -132,6 +132,11 @@ process.on("SIGINT", unexportOnClose); //function to run when user closes using 
 
 const updateState = () => {
   io.emit("state", {gpo, gpi, settings})
+}
+
+const consoleLog = (line) => {
+console.log(line)
+io.emit("consolelog",line)
 }
 
 // Start webserver

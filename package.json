@@ -4,7 +4,7 @@
   "description": "simple gpi to companion overpress for raspberry pi",
   "main": "app.js",
   "scripts": {
-    "test": "node app.js"
+    "run": "node app.js"
   },
   "repository": {
     "type": "git",
