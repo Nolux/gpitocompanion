@@ -2,6 +2,16 @@ const dgram = require("dgram");
 const TSLServer = require("tslserver");
 const Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
 
+const express = require("express");
+const app = express();
+const http = require("http").Server(app);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: "*"
+  }
+});
+const path = require("path");
+
 // Load local settings
 const { settings, gpiPorts, gpoPorts } = require("./settings.json");
 
@@ -44,6 +54,7 @@ const sendTally = (
   if (settings.debug) {
     console.log(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
   }
+  updateState()
 };
 
 const unexportOnClose = () => {
@@ -83,7 +94,7 @@ gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
       console.error(`There was an error GPI${rpiPin} ${err}`); //output error message to console
       return;
     }
-    sendTally(tallyNumber, value, page, button);
+    sendTally(tallyNumber, value ? true : false, page, button);
   });
 });
 
@@ -103,6 +114,7 @@ gpoPorts.map(({ tallyNumber, rpiPin }) => {
 
 // TSL server actions
 tslServer.on("message", ({ address, tally1, tally2, label }) => {
+  gpo[address].status = tally2
   // Trigger output matching address
   if (gpo[address]) {
     gpo[address].gpo.writeSync(tally2);
@@ -110,9 +122,36 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
   if (settings.debug && tally2) {
     console.log(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
   }
+  updateState()
 });
 
 console.log("Running GPItoOSC");
 
 // On termination close all ports/cleanup
 process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
+
+const updateState = () => {
+  io.emit("state", {gpo, gpi, settings})
+}
+
+// Start webserver
+app.get("/", function (req, res) {
+  res.sendFile(path.join(__dirname, "./frontend/dist", "index.html"));
+});
+
+app.use(express.static("frontend/dist"));
+
+//Whenever someone connects this gets executed
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  socket.emit("state", {gpo,gpi, settings})
+
+  //Whenever someone disconnects this piece of code executed
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+http.listen(settings.webServerPort, () => {
+  console.log("listening on http://localhost:" + settings.webServerPort);
+});

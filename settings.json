@@ -6,7 +6,8 @@
     "tslServerPort": 5555,
     "tslUDP": true,
     "tslTCP": true,
-    "debug": true
+    "debug": true,
+    "webServerPort": 8888
   },
   "gpiPorts": [
     { "tallyNumber": 1, "rpiPin": 17, "page": "10", "button": "1" },
