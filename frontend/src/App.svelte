@@ -1,8 +1,12 @@
 <script>
     import { io } from "socket.io-client";
+
+    import { onMount } from "svelte";
     import { writable } from "svelte/store";
 
     let connected = false;
+    let url;
+
     let gpi = [];
     let gpo = [];
     let settings = {};
@@ -11,29 +15,34 @@
         { time: new Date(), line: "Recived Tally: 1 ON" },
     ]);
 
-    const socket = io("http://10.0.10.233:8888");
+    onMount(() => {
+        url = window.location.href;
+        console.log(url);
 
-    console.log(socket);
+        const socket = io(url);
 
-    socket.on("connect", () => {
-        connected = true;
-        console.log("connected");
-    });
-    socket.on("state", (data) => {
-        gpi = data.gpi;
-        gpo = data.gpo;
-        settings = data.settings;
-    });
-    socket.on("consolelog", (line) => {
-        let oldArr = $consoleLog;
-        if (oldArr.length < 10) {
-        } else {
-            oldArr.shift();
-        }
-        oldArr.push({ time: new Date(), line: line });
+        console.log(socket);
 
-        console.log(oldArr);
-        consoleLog.set(oldArr);
+        socket.on("connect", () => {
+            connected = true;
+            console.log("connected");
+        });
+        socket.on("state", (data) => {
+            gpi = data.gpi;
+            gpo = data.gpo;
+            settings = data.settings;
+        });
+        socket.on("consolelog", (line) => {
+            let oldArr = $consoleLog;
+            if (oldArr.length < 10) {
+            } else {
+                oldArr.shift();
+            }
+            oldArr.push({ time: new Date(), line: line });
+
+            console.log(oldArr);
+            consoleLog.set(oldArr);
+        });
     });
 </script>
 
