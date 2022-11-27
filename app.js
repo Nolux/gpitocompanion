@@ -170,7 +170,7 @@ app.get("/", function (req, res) {
 app.get("/fallbackToggle", (req, res) => {
   fallback = !fallback;
   if (settings.debug) {
-    console.log("Fallback is: ", fallback);
+    consoleLog(`Fallback is: ${fallback}`);
   }
   res.json(fallback);
 });
