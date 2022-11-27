@@ -154,7 +154,7 @@ console.log("Running GPItoOSC");
 process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
 
 const updateState = () => {
-  io.emit("state", { gpo, gpi, settings });
+  io.emit("state", { gpo, gpi, settings, fallback });
 };
 
 const consoleLog = (line) => {
@@ -173,6 +173,7 @@ app.get("/fallbackToggle", (req, res) => {
     consoleLog(`Fallback is: ${fallback}`);
   }
   res.json(fallback);
+  updateState();
 });
 
 app.use(express.static("frontend/dist"));
