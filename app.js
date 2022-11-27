@@ -7,8 +7,8 @@ const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
   cors: {
-    origin: "*"
-  }
+    origin: "*",
+  },
 });
 const path = require("path");
 
@@ -54,7 +54,7 @@ const sendTally = (
   if (settings.debug) {
     consoleLog(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
   }
-  updateState()
+  updateState();
 };
 
 const unexportOnClose = () => {
@@ -95,6 +95,28 @@ gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
       return;
     }
     sendTally(tallyNumber, value ? true : false, page, button);
+
+    if (!value) {
+      let allFalse = false;
+      gpi.map((i) => {
+        // Check if another GPI is pressed
+        if (i.status) {
+          allFalse = true;
+          // If another Gpi is active send Activate
+          sendTally(i.tallyNumber, true, i.page, i.button);
+        }
+      });
+      if (!allFalse && settings.fallback) {
+        // revert to fallback
+
+        // Send UDP message to companion
+        client.send(
+          `BANK-PRESS ${settings.page} ${settings.button}`,
+          settings.remoteUdpPort,
+          settings.remoteUdpIp
+        );
+      }
+    }
   });
 });
 
@@ -114,7 +136,7 @@ gpoPorts.map(({ tallyNumber, rpiPin }) => {
 
 // TSL server actions
 tslServer.on("message", ({ address, tally1, tally2, label }) => {
-  gpo[address].status = tally2
+  gpo[address].status = tally2;
   // Trigger output matching address
   if (gpo[address]) {
     gpo[address].gpo.writeSync(tally2);
@@ -122,7 +144,7 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
   if (settings.debug) {
     consoleLog(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
   }
-  updateState()
+  updateState();
 });
 
 console.log("Running GPItoOSC");
@@ -131,13 +153,13 @@ console.log("Running GPItoOSC");
 process.on("SIGINT", unexportOnClose); //function to run when user closes using ctrl+c
 
 const updateState = () => {
-  io.emit("state", {gpo, gpi, settings})
-}
+  io.emit("state", { gpo, gpi, settings });
+};
 
 const consoleLog = (line) => {
-console.log(line)
-io.emit("consolelog",line)
-}
+  console.log(line);
+  io.emit("consolelog", line);
+};
 
 // Start webserver
 app.get("/", function (req, res) {
@@ -150,7 +172,7 @@ app.use(express.static("frontend/dist"));
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.emit("state", {gpo,gpi, settings})
+  socket.emit("state", { gpo, gpi, settings });
 
   //Whenever someone disconnects this piece of code executed
   socket.on("disconnect", () => {
