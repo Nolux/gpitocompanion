@@ -27,6 +27,7 @@ const client = dgram.createSocket("udp4");
 // Prep local state
 let gpi = [];
 let gpo = [];
+let fallback = settings.fallback;
 
 //
 // Functions
@@ -106,7 +107,7 @@ gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
           sendTally(i.tallyNumber, true, i.page, i.button);
         }
       });
-      if (!allFalse && settings.fallback) {
+      if (!allFalse && fallback) {
         // revert to fallback
 
         // Send UDP message to companion
@@ -164,6 +165,14 @@ const consoleLog = (line) => {
 // Start webserver
 app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "./frontend/dist", "index.html"));
+});
+
+app.get("/fallbackToggle", (req, res) => {
+  fallback = !fallback;
+  if (settings.debug) {
+    console.log("Fallback is: ", fallback);
+  }
+  res.json(fallback);
 });
 
 app.use(express.static("frontend/dist"));
