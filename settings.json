@@ -1,7 +1,7 @@
 {
   "settings": {
     "remoteUdpPort": 8001,
-    "remoteUdpIp": "10.0.10.15",
+    "remoteUdpIp": "127.0.0.1",
     "button": "9",
     "page": "10",
     "tslServerPort": 5555,
