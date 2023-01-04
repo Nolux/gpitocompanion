@@ -1,6 +1,8 @@
+const { SerialPort } = require("serialport");
+const { ReadlineParser } = require("@serialport/parser-readline");
+
 const dgram = require("dgram");
 const TSLServer = require("tslserver");
-const Gpio = require("onoff").Gpio; //include onoff to interact with the GPIO
 
 const express = require("express");
 const app = express();
@@ -53,7 +55,7 @@ const sendTally = (
 
   gpi[tallyNumber].status = on; // For future use
   if (settings.debug) {
-    consoleLog(`Tally: ${tallyNumber} ${on ? "ON" : "OFF"}`);
+    consoleLog(`Overpress: ${tallyNumber} ${on ? "ON" : "OFF"}`);
   }
   updateState();
 };
@@ -64,7 +66,6 @@ const unexportOnClose = () => {
     if (!tallyNumber) {
       return;
     }
-    gpi[tallyNumber].gpi.unexport(); // Unexport GPI0 to free resources
     sendTally(tallyNumber, 0);
   });
   console.log("GPIO cleaned up and OSC-states set off");
@@ -75,6 +76,51 @@ const unexportOnClose = () => {
 // Setup GPI
 //
 
+// SETUP COMS TO SERIAL
+
+const serialport = new SerialPort({
+  path: settings.serialPath,
+  baudRate: settings.serialBaud,
+});
+
+// PARSER FOR SERIAL
+const parser = serialport.pipe(new ReadlineParser({ delimiter: "\r\n" }));
+parser.on("data", (input) => {
+  if (input[0] != "X") {
+    input = input.split(" ");
+    tallyNumber = input[0];
+    value = input[1] === "1";
+    if (gpiPorts[tallyNumber - 1]) {
+      page = gpiPorts[tallyNumber - 1].page;
+      button = gpiPorts[tallyNumber - 1].button;
+
+      sendTally(tallyNumber, value ? true : false, page, button);
+
+      if (!value) {
+        let allFalse = false;
+        gpi.map((i) => {
+          // Check if another GPI is pressed
+          if (i.status) {
+            allFalse = true;
+            // If another Gpi is active send Activate
+            sendTally(i.tallyNumber, true, i.page, i.button);
+          }
+        });
+        if (!allFalse && fallback) {
+          // revert to fallback
+
+          // Send UDP message to companion
+          client.send(
+            `BANK-PRESS ${settings.page} ${settings.button}`,
+            settings.remoteUdpPort,
+            settings.remoteUdpIp
+          );
+        }
+      }
+    }
+  }
+});
+
 gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
   // Check if tallyNumber exists, bug caused by index
   if (!tallyNumber) {
@@ -84,41 +130,6 @@ gpiPorts.map(({ tallyNumber, rpiPin, page, button }) => {
   // Update local state
   gpi[tallyNumber] = { tallyNumber };
   gpi[tallyNumber].status = false;
-
-  // Enable pin
-  gpi[tallyNumber].gpi = new Gpio(rpiPin, "in", "both");
-
-  // Setup watch pin function
-  gpi[tallyNumber].gpi.watch(function (err, value) {
-    if (err) {
-      //if an error
-      console.error(`There was an error GPI${rpiPin} ${err}`); //output error message to console
-      return;
-    }
-    sendTally(tallyNumber, value ? true : false, page, button);
-
-    if (!value) {
-      let allFalse = false;
-      gpi.map((i) => {
-        // Check if another GPI is pressed
-        if (i.status) {
-          allFalse = true;
-          // If another Gpi is active send Activate
-          sendTally(i.tallyNumber, true, i.page, i.button);
-        }
-      });
-      if (!allFalse && fallback) {
-        // revert to fallback
-
-        // Send UDP message to companion
-        client.send(
-          `BANK-PRESS ${settings.page} ${settings.button}`,
-          settings.remoteUdpPort,
-          settings.remoteUdpIp
-        );
-      }
-    }
-  });
 });
 
 //
@@ -132,7 +143,7 @@ gpoPorts.map(({ tallyNumber, rpiPin }) => {
   gpo[tallyNumber] = { tallyNumber };
   gpo[tallyNumber].status = false;
 
-  gpo[tallyNumber].gpo = new Gpio(rpiPin, "out"); //enable when needed
+  //gpo[tallyNumber].gpo = new Gpio(rpiPin, "out"); //enable when needed
 });
 
 // TSL server actions
@@ -140,7 +151,9 @@ tslServer.on("message", ({ address, tally1, tally2, label }) => {
   gpo[address].status = tally2;
   // Trigger output matching address
   if (gpo[address]) {
-    gpo[address].gpo.writeSync(tally2);
+    // TODO:
+    serialport.write(`${address} ${tally2}\n`);
+    //gpo[address].gpo.writeSync(tally2);
   }
   if (settings.debug) {
     consoleLog(`Recived Tally: ${address} ${tally2 ? "ON" : "OFF"}`);
